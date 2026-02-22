@@ -63,7 +63,7 @@
 
         // ── HTML visualisation tab ──────────────────────────────────────
         const rows = n.map((e, idx) => `
-            <tr>
+            <tr data-index="${idx + 1}" data-username="${e.username.toLowerCase()}" data-fullname="${e.full_name.toLowerCase()}">
                 <td class="num">${idx + 1}</td>
                 <td><a href="https://www.instagram.com/${e.username}/" target="_blank" rel="noreferrer">@${e.username}</a></td>
                 <td class="full">${e.full_name}</td>
@@ -90,7 +90,6 @@
   thead th{text-align:left;padding:0.6rem 0.9rem;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.07em;color:#555;border-bottom:1px solid #1e1e1e}
   tbody tr{border-bottom:1px solid #151515;transition:background 0.1s}
   tbody tr:hover{background:#121212}
-  tbody tr.hidden{display:none}
   td{padding:0.65rem 0.9rem;font-size:0.875rem;vertical-align:middle}
   td.num{color:#444;width:3rem;font-size:0.78rem}
   td a{color:#a0c4ff;text-decoration:none;font-weight:500}
@@ -103,7 +102,7 @@
 <h1>@${fileLabel} — Following</h1>
 <p class="meta">Exported <span>${new Date().toLocaleString()}</span> &nbsp;·&nbsp; <span>${n.length} accounts</span> &nbsp;·&nbsp; most recently followed → oldest</p>
 <div class="toolbar">
-  <input id="q" type="search" placeholder="Filter by username or name…" autofocus/>
+  <input id="q" type="text" placeholder="Filter by username or name…" autofocus/>
   <span class="count" id="countLabel">${n.length} accounts</span>
 </div>
 <table>
@@ -112,21 +111,34 @@
 </table>
 <p class="empty" id="empty" style="display:none">No results</p>
 <script>
-  const q=document.getElementById('q');
-  const rows=document.querySelectorAll('#tbody tr');
-  const label=document.getElementById('countLabel');
-  const empty=document.getElementById('empty');
-  q.addEventListener('input',()=>{
-    const v=q.value.toLowerCase();
-    let c=0;
-    rows.forEach(r=>{
-      const match=r.textContent.toLowerCase().includes(v);
-      r.classList.toggle('hidden',!match);
-      if(match)c++;
-    });
-    label.textContent=c+' account'+(c===1?'':'s');
-    empty.style.display=c===0?'block':'none';
-  });
+  (function(){
+    var q=document.getElementById('q');
+    var rows=Array.from(document.querySelectorAll('#tbody tr'));
+    var label=document.getElementById('countLabel');
+    var empty=document.getElementById('empty');
+    function filter(){
+      var v=q.value.trim();
+      var c=0;
+      var isNum=/^\d+$/.test(v);
+      rows.forEach(function(r){
+        var match;
+        if(v===''){
+          match=true;
+        } else if(isNum){
+          match=r.dataset.index===v;
+        } else {
+          var lv=v.toLowerCase();
+          match=r.dataset.username.indexOf(lv)!==-1||r.dataset.fullname.indexOf(lv)!==-1;
+        }
+        r.style.display=match?'':'none';
+        if(match)c++;
+      });
+      label.textContent=c+' account'+(c===1?'':'s');
+      empty.style.display=c===0?'block':'none';
+    }
+    q.addEventListener('input',filter);
+    q.addEventListener('keyup',filter);
+  })();
 <\/script>
 </body>
 </html>`;
