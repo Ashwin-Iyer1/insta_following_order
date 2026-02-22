@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Instagram Following List Exporter</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1.5rem 4rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: #fff;
+    }
+
+    header p {
+      margin-top: 0.6rem;
+      color: #888;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: #141414;
+      border: 1px solid #2a2a2a;
+      border-radius: 14px;
+      padding: 1.8rem;
+      width: 100%;
+      max-width: 720px;
+      margin-bottom: 2rem;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 1.2rem;
+    }
+
+    /* Code block */
+    .code-wrapper {
+      position: relative;
+      background: #0d0d0d;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 1.2rem;
+    }
+
+    .code-wrapper pre {
+      padding: 1.2rem;
+      font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, monospace;
+      font-size: 0.72rem;
+      line-height: 1.5;
+      color: #a0c4ff;
+      overflow: hidden;
+      max-height: 120px;
+      -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 40%, transparent 100%);
+      white-space: pre-wrap;
+      word-break: break-all;
+      user-select: none;
+    }
+
+    #loading {
+      padding: 1.2rem;
+      color: #555;
+      font-size: 0.85rem;
+      font-family: "SF Mono", monospace;
+    }
+
+    /* Copy button */
+    #copyBtn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.85rem 1.5rem;
+      background: #0070f3;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.1s ease;
+      letter-spacing: -0.01em;
+    }
+
+    #copyBtn:hover { background: #005fcc; }
+    #copyBtn:active { transform: scale(0.98); }
+
+    #copyBtn.success {
+      background: #22c55e;
+    }
+
+    #copyBtn svg {
+      flex-shrink: 0;
+    }
+
+    /* Steps */
+    .steps ol {
+      list-style: none;
+      counter-reset: steps;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .steps ol li {
+      counter-increment: steps;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #ccc;
+    }
+
+    .steps ol li::before {
+      content: counter(steps);
+      flex-shrink: 0;
+      width: 1.6rem;
+      height: 1.6rem;
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #0070f3;
+      margin-top: 0.05rem;
+    }
+
+    .steps kbd {
+      background: #1e1e1e;
+      border: 1px solid #3a3a3a;
+      border-radius: 5px;
+      padding: 0.15rem 0.45rem;
+      font-family: "SF Mono", monospace;
+      font-size: 0.78rem;
+      color: #fff;
+    }
+
+    .steps a {
+      color: #0070f3;
+      text-decoration: none;
+    }
+
+    .steps a:hover { text-decoration: underline; }
+
+    .warning {
+      background: rgba(255, 159, 10, 0.08);
+      border: 1px solid rgba(255, 159, 10, 0.25);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      font-size: 0.85rem;
+      color: #e8a838;
+      line-height: 1.5;
+      max-width: 720px;
+      width: 100%;
+      margin-bottom: 2rem;
+    }
+
+    .warning strong { color: #ffb346; }
+
+    footer {
+      margin-top: auto;
+      color: #444;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    footer a { color: #555; text-decoration: none; }
+    footer a:hover { color: #888; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>📱 Instagram Following List Exporter</h1>
+    <p>Export your full following list to a JSON file — no installs required.</p>
+  </header>
+
+  <div class="warning">
+    <strong>⚠️ Warning:</strong> This tool uses Instagram's internal API.
+    Excessive use may trigger temporary rate limits. Use responsibly.
+  </div>
+
+  <div class="card">
+    <h2>Script</h2>
+    <div class="code-wrapper">
+      <div id="loading">Loading script...</div>
+      <pre id="codePreview" style="display:none;"></pre>
+    </div>
+    <button id="copyBtn" disabled>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+      COPY
+    </button>
+  </div>
+
+  <div class="card steps">
+    <h2>How to use</h2>
+    <ol>
+      <li>Click the <strong>COPY</strong> button above to copy the script.</li>
+      <li>Go to <a href="https://www.instagram.com" target="_blank" rel="noreferrer">instagram.com</a> and log in to your account.</li>
+      <li>
+        Open the developer console:<br/>
+        <span style="display:inline-flex; gap:0.4rem; margin-top:0.35rem; flex-wrap:wrap;">
+          <span>Windows / Linux: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>J</kbd></span>
+          &nbsp;|&nbsp;
+          <span>Mac OS: <kbd>⌘</kbd> + <kbd>⌥</kbd> + <kbd>J</kbd></span>
+        </span>
+      </li>
+      <li>Paste the script and press <kbd>Enter</kbd>.</li>
+      <li>
+        The script will log its progress then automatically download a
+        <code style="font-family:monospace; font-size:0.85em; color:#a0c4ff;">&lt;user_id&gt;_following.json</code> file
+        when complete.
+      </li>
+    </ol>
+  </div>
+
+  <footer>
+    <p>
+      Not affiliated with Instagram or Meta. &nbsp;·&nbsp;
+      <a href="https://github.com/Ashwin-Iyer1/insta_following_order" target="_blank" rel="noreferrer">View on GitHub</a>
+    </p>
+  </footer>
+
+  <script>
+    const btn = document.getElementById('copyBtn');
+    const preview = document.getElementById('codePreview');
+    const loading = document.getElementById('loading');
+    let scriptContent = '';
+
+    fetch('./fetch_following_console.min.js')
+      .then(r => {
+        if (!r.ok) throw new Error('Failed to load script');
+        return r.text();
+      })
+      .then(text => {
+        scriptContent = text;
+        preview.textContent = text;
+        loading.style.display = 'none';
+        preview.style.display = 'block';
+        btn.disabled = false;
+      })
+      .catch(() => {
+        loading.textContent = '⚠️ Could not load script file.';
+      });
+
+    btn.addEventListener('click', () => {
+      if (!scriptContent) return;
+      navigator.clipboard.writeText(scriptContent).then(() => {
+        btn.classList.add('success');
+        btn.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          COPIED!
+        `;
+        setTimeout(() => {
+          btn.classList.remove('success');
+          btn.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            COPY
+          `;
+        }, 2500);
+      });
+    });
+  </script>
+</body>
+</html>
