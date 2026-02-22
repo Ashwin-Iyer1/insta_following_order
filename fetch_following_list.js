@@ -119,7 +119,7 @@
     function filter(){
       var v=q.value.trim();
       var c=0;
-      var isNum=/^\d+$/.test(v);
+      var isNum=/^[0-9]+$/.test(v);
       rows.forEach(function(r){
         var match;
         if(v===''){
