@@ -200,7 +200,7 @@
 
   <header>
     <h1>📱 Instagram Following List Exporter</h1>
-    <p>Export your full following list to a JSON file — no installs required.</p>
+    <p>Export any Instagram user's following list to a JSON file — no installs required.</p>
   </header>
 
   <div class="warning">
@@ -229,6 +229,13 @@
       <li>Click the <strong>COPY</strong> button above to copy the script.</li>
       <li>Go to <a href="https://www.instagram.com" target="_blank" rel="noreferrer">instagram.com</a> and log in to your account.</li>
       <li>
+        Navigate to the right page:<br/>
+        <span style="display:flex; flex-direction:column; gap:0.3rem; margin-top:0.35rem; font-size:0.85rem; color:#aaa;">
+          <span>👤 <strong style="color:#ccc;">Your own list</strong> — stay on any page (home, explore, etc.)</span>
+          <span>🔍 <strong style="color:#ccc;">Another user's list</strong> — navigate to <code style="font-family:monospace; font-size:0.85em; color:#a0c4ff;">instagram.com/{username}</code></span>
+        </span>
+      </li>
+      <li>
         Open the developer console:<br/>
         <span style="display:inline-flex; gap:0.4rem; margin-top:0.35rem; flex-wrap:wrap;">
           <span>Windows / Linux: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>J</kbd></span>
@@ -239,7 +246,7 @@
       <li>Paste the script and press <kbd>Enter</kbd>.</li>
       <li>
         The script will log its progress then automatically download a
-        <code style="font-family:monospace; font-size:0.85em; color:#a0c4ff;">&lt;user_id&gt;_following.json</code> file
+        <code style="font-family:monospace; font-size:0.85em; color:#a0c4ff;">&lt;username&gt;_following.json</code> file
         when complete.
       </li>
     </ol>
