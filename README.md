@@ -10,6 +10,8 @@ This tool uses the Instagram internal GraphQL API.
 
 ## 🖥️ Usage
 
+![Demo](Untitled%202.jpg)
+
 1. Go to [the copy page](https://ashwin-iyer1.github.io/insta_following_order/) and click **COPY** to copy the script.
 
 2. Log in to [Instagram](https://www.instagram.com) in your browser.
