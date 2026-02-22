@@ -1,12 +1,34 @@
 (() => {
     (async () => {
-        let o = ("; " + document.cookie).split("; ds_user_id=").length === 2
-            ? ("; " + document.cookie).split("; ds_user_id=").pop().split(";").shift()
-            : null;
-        if (!o) throw new Error("Not logged in — ds_user_id cookie not found");
         let f = (e) => new Promise((s) => setTimeout(s, e));
-        let i = o;
-        console.log(`User ID: ${i}`);
+
+        // Detect if currently on a user profile page (e.g. instagram.com/{username})
+        const pathParts = location.pathname.split("/").filter(Boolean);
+        const knownPaths = ["explore", "reels", "direct", "stories", "accounts", "tv", "p", "ar", "about", "hashtag", "locations", "audio"];
+        const isProfilePage = pathParts.length >= 1 && !knownPaths.includes(pathParts[0]);
+
+        let i, fileLabel;
+
+        if (isProfilePage) {
+            const targetUsername = pathParts[0];
+            console.log(`On profile page — looking up user ID for @${targetUsername} ...`);
+            let res = await fetch(`https://www.instagram.com/web/search/topsearch/?query=${encodeURIComponent(targetUsername)}`, { credentials: "include" });
+            let data = await res.json();
+            let c = data.users?.find((e) => e.user.username === targetUsername)?.user;
+            if (!c) throw new Error(`User "${targetUsername}" not found in search results`);
+            i = c.pk;
+            fileLabel = targetUsername;
+            console.log(`User ID: ${i}`);
+        } else {
+            // Fall back to the logged-in user via the ds_user_id cookie
+            let cookieId = ("; " + document.cookie).split("; ds_user_id=").length === 2
+                ? ("; " + document.cookie).split("; ds_user_id=").pop().split(";").shift()
+                : null;
+            if (!cookieId) throw new Error("Not logged in — ds_user_id cookie not found");
+            i = cookieId;
+            fileLabel = cookieId;
+            console.log(`User ID: ${i}`);
+        }
         let w = "d04b0a864b4b54837c0d870b0e77e076",
             n = [],
             u = !0,
@@ -36,8 +58,8 @@ Total following: ${n.length}
         let g = new Blob([JSON.stringify(n, null, 2)], { type: "application/json" }),
             t = document.createElement("a");
         (t.href = URL.createObjectURL(g)),
-            (t.download = `${o}_following.json`),
+            (t.download = `${fileLabel}_following.json`),
             t.click(),
-            console.log(`\n✓ Downloaded ${o}_following.json`);
+            console.log(`\n✓ Downloaded ${fileLabel}_following.json`);
     })();
 })();
