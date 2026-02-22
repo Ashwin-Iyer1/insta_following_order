@@ -62,12 +62,39 @@
         console.log(`\n✓ Downloaded ${fileLabel}_following.json`);
 
         // ── HTML visualisation tab ──────────────────────────────────────
-        const rows = n.map((e, idx) => `
-            <tr data-index="${idx + 1}" data-username="${e.username.toLowerCase()}" data-fullname="${e.full_name.toLowerCase()}">
+        const tableRows = n.map((e, idx) => `
+            <tr data-index="${idx + 1}" data-username="${e.username.toLowerCase()}" data-fullname="${(e.full_name || "").toLowerCase().replace(/"/g, '&quot;')}">
                 <td class="num">${idx + 1}</td>
                 <td><a href="https://www.instagram.com/${e.username}/" target="_blank" rel="noreferrer">@${e.username}</a></td>
-                <td class="full">${e.full_name}</td>
+                <td class="full">${(e.full_name || "").replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
             </tr>`).join("");
+
+        // Build the filter JS as a separate blob to bypass Instagram's CSP
+        const filterJS = `(function(){
+  var q=document.getElementById('q');
+  var rows=Array.from(document.querySelectorAll('#tbody tr'));
+  var label=document.getElementById('countLabel');
+  var empty=document.getElementById('empty');
+  function filter(){
+    var v=q.value.trim();
+    var c=0;
+    var isNum=/^[0-9]+$/.test(v);
+    rows.forEach(function(r){
+      var match;
+      if(v===''){match=true;}
+      else if(isNum){match=r.dataset.index===v;}
+      else{var lv=v.toLowerCase();match=r.dataset.username.indexOf(lv)!==-1||r.dataset.fullname.indexOf(lv)!==-1;}
+      r.style.display=match?'':'none';
+      if(match)c++;
+    });
+    label.textContent=c+' account'+(c===1?'':'s');
+    empty.style.display=c===0?'block':'none';
+  }
+  q.addEventListener('input',filter);
+  q.addEventListener('keyup',filter);
+})();`;
+        const jsBlob = new Blob([filterJS], { type: "application/javascript" });
+        const jsBlobUrl = URL.createObjectURL(jsBlob);
 
         const html = `<!DOCTYPE html>
 <html lang="en">
@@ -107,39 +134,10 @@
 </div>
 <table>
   <thead><tr><th>#</th><th>Username</th><th>Full Name</th></tr></thead>
-  <tbody id="tbody">${rows}</tbody>
+  <tbody id="tbody">${tableRows}</tbody>
 </table>
 <p class="empty" id="empty" style="display:none">No results</p>
-<script>
-  (function(){
-    var q=document.getElementById('q');
-    var rows=Array.from(document.querySelectorAll('#tbody tr'));
-    var label=document.getElementById('countLabel');
-    var empty=document.getElementById('empty');
-    function filter(){
-      var v=q.value.trim();
-      var c=0;
-      var isNum=/^[0-9]+$/.test(v);
-      rows.forEach(function(r){
-        var match;
-        if(v===''){
-          match=true;
-        } else if(isNum){
-          match=r.dataset.index===v;
-        } else {
-          var lv=v.toLowerCase();
-          match=r.dataset.username.indexOf(lv)!==-1||r.dataset.fullname.indexOf(lv)!==-1;
-        }
-        r.style.display=match?'':'none';
-        if(match)c++;
-      });
-      label.textContent=c+' account'+(c===1?'':'s');
-      empty.style.display=c===0?'block':'none';
-    }
-    q.addEventListener('input',filter);
-    q.addEventListener('keyup',filter);
-  })();
-<\/script>
+<script src="${jsBlobUrl}"></script>
 </body>
 </html>`;
 
