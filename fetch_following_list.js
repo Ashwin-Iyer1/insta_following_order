@@ -49,17 +49,90 @@
                 (a = r.page_info.end_cursor),
                 console.log(`  Fetched ${n.length} so far ...`);
         }
-        console.log(`
-Total following: ${n.length}
-`),
-            console.log(`Most recently followed \u2192 oldest:
-`),
-            console.table(n.map((e, s) => ({ "#": s + 1, username: `@${e.username}`, full_name: e.full_name })));
+        console.log(`\nTotal following: ${n.length}\n`);
+        console.log(`Most recently followed → oldest:\n`);
+        console.table(n.map((e, s) => ({ "#": s + 1, username: `@${e.username}`, full_name: e.full_name })));
+
+        // ── JSON download ──────────────────────────────────────────────
         let g = new Blob([JSON.stringify(n, null, 2)], { type: "application/json" }),
-            t = document.createElement("a");
-        (t.href = URL.createObjectURL(g)),
-            (t.download = `${fileLabel}_following.json`),
-            t.click(),
-            console.log(`\n✓ Downloaded ${fileLabel}_following.json`);
+            dl = document.createElement("a");
+        dl.href = URL.createObjectURL(g);
+        dl.download = `${fileLabel}_following.json`;
+        dl.click();
+        console.log(`\n✓ Downloaded ${fileLabel}_following.json`);
+
+        // ── HTML visualisation tab ──────────────────────────────────────
+        const rows = n.map((e, idx) => `
+            <tr>
+                <td class="num">${idx + 1}</td>
+                <td><a href="https://www.instagram.com/${e.username}/" target="_blank" rel="noreferrer">@${e.username}</a></td>
+                <td class="full">${e.full_name}</td>
+            </tr>`).join("");
+
+        const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>${fileLabel} — Following (${n.length})</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#0a0a0a;color:#e0e0e0;padding:2rem 1.5rem 4rem}
+  h1{font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:0.3rem}
+  .meta{color:#666;font-size:0.85rem;margin-bottom:1.5rem}
+  .meta span{color:#aaa}
+  .toolbar{display:flex;gap:1rem;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap}
+  input{flex:1;min-width:200px;background:#141414;border:1px solid #2a2a2a;border-radius:8px;padding:0.6rem 1rem;color:#e0e0e0;font-size:0.9rem;outline:none}
+  input:focus{border-color:#0070f3}
+  input::placeholder{color:#555}
+  .count{color:#555;font-size:0.85rem;white-space:nowrap}
+  table{width:100%;border-collapse:collapse}
+  thead th{text-align:left;padding:0.6rem 0.9rem;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.07em;color:#555;border-bottom:1px solid #1e1e1e}
+  tbody tr{border-bottom:1px solid #151515;transition:background 0.1s}
+  tbody tr:hover{background:#121212}
+  tbody tr.hidden{display:none}
+  td{padding:0.65rem 0.9rem;font-size:0.875rem;vertical-align:middle}
+  td.num{color:#444;width:3rem;font-size:0.78rem}
+  td a{color:#a0c4ff;text-decoration:none;font-weight:500}
+  td a:hover{text-decoration:underline}
+  td.full{color:#888}
+  .empty{text-align:center;padding:3rem;color:#444;font-size:0.9rem}
+</style>
+</head>
+<body>
+<h1>@${fileLabel} — Following</h1>
+<p class="meta">Exported <span>${new Date().toLocaleString()}</span> &nbsp;·&nbsp; <span>${n.length} accounts</span> &nbsp;·&nbsp; most recently followed → oldest</p>
+<div class="toolbar">
+  <input id="q" type="search" placeholder="Filter by username or name…" autofocus/>
+  <span class="count" id="countLabel">${n.length} accounts</span>
+</div>
+<table>
+  <thead><tr><th>#</th><th>Username</th><th>Full Name</th></tr></thead>
+  <tbody id="tbody">${rows}</tbody>
+</table>
+<p class="empty" id="empty" style="display:none">No results</p>
+<script>
+  const q=document.getElementById('q');
+  const rows=document.querySelectorAll('#tbody tr');
+  const label=document.getElementById('countLabel');
+  const empty=document.getElementById('empty');
+  q.addEventListener('input',()=>{
+    const v=q.value.toLowerCase();
+    let c=0;
+    rows.forEach(r=>{
+      const match=r.textContent.toLowerCase().includes(v);
+      r.classList.toggle('hidden',!match);
+      if(match)c++;
+    });
+    label.textContent=c+' account'+(c===1?'':'s');
+    empty.style.display=c===0?'block':'none';
+  });
+<\/script>
+</body>
+</html>`;
+
+        const vizBlob = new Blob([html], { type: "text/html" });
+        window.open(URL.createObjectURL(vizBlob), "_blank");
+        console.log(`✓ Opened visualisation tab`);
     })();
 })();
