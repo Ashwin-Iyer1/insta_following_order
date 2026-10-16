@@ -1,0 +1,1 @@
+{"name":"following-atlas","version":"2.0.0","private":true,"scripts":{"build":"esbuild fetch_following_list.js --minify --outfile=fetch_following_console.min.js","test":"node --test tests/*.test.cjs","test:ui":"playwright test"},"devDependencies":{"@playwright/test":"1.64.1","esbuild":"0.28.2"}}
